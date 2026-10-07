@@ -12,7 +12,7 @@ const Charts = (() => {
     return e;
   };
   const fmt = (n, d = 1) => {
-    if (n === null || n === undefined) return '—';
+    if (n === null || n === undefined || !isFinite(n)) return '—';
     if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
     if (Math.abs(n) >= 1e4) return (n / 1e3).toFixed(0) + 'k';
     return Number(n).toFixed(d).replace(/\.0$/, '');
@@ -156,20 +156,34 @@ const Charts = (() => {
         }
         g.appendChild(path);
 
+        /* A 3.6px dot is not a touch target. Add an invisible hit circle sized
+           to the gap between points so taps land without overlapping siblings. */
+        const spacing = n > 1 ? iw / (n - 1) : iw;
+        const hitR = Math.min(14, Math.max(4.5, spacing * 0.45));
+
         pts.forEach((p, i) => {
-          const c = el('circle', { cx: p[0], cy: p[1], r: 3.6, fill: '#070B18', stroke: s.color, 'stroke-width': 2.1, class: 'dot' });
           const ev = s.events && s.events[i];
-          bindTip(c, () => `${cfg.labels[i]}${ev ? ' · ' + ev.tag : ''}`,
-            () => `${s.name}: ${s.fmt ? s.fmt(s.values[i], i) : fmt(s.values[i], s.d ?? 2)}${s.unit ? ' ' + s.unit : ''}`);
-          c.addEventListener('click', () => {
+          const titleFn = () => `${cfg.labels[i]}${ev ? ' · ' + ev.tag : ''}`;
+          const bodyFn = () => `${s.name}: ${s.fmt ? s.fmt(s.values[i], i) : fmt(s.values[i], s.d ?? 2)}${s.unit ? ' ' + s.unit : ''}`;
+          const select = () => {
             svg.querySelectorAll('.dot.pinned').forEach(d2 => d2.classList.remove('pinned'));
             c.classList.add('pinned');
             c.setAttribute('r', 6.2);
             host.dispatchEvent(new CustomEvent('point', { detail: { index: i, series: s.key, value: s.values[i], event: ev } }));
-          });
+          };
+
+          const hit = el('circle', { cx: p[0], cy: p[1], r: hitR, class: 'hit' });
+          bindTip(hit, titleFn, bodyFn);
+          hit.addEventListener('click', select);
+          g.appendChild(hit);
+
+          const c = el('circle', { cx: p[0], cy: p[1], r: 3.6, fill: '#070B18', stroke: s.color, 'stroke-width': 2.1, class: 'dot' });
+          bindTip(c, titleFn, bodyFn);
+          c.addEventListener('click', select);
           g.appendChild(c);
+
           if (ev) {
-            const halo = el('circle', { cx: p[0], cy: p[1], r: 8, fill: 'none', stroke: s.color, 'stroke-width': 1, opacity: .35 });
+            const halo = el('circle', { cx: p[0], cy: p[1], r: 8, fill: 'none', stroke: s.color, 'stroke-width': 1, opacity: .35, 'pointer-events': 'none' });
             halo.classList.add('vennfail');
             g.appendChild(halo);
           }
@@ -180,11 +194,11 @@ const Charts = (() => {
       /* ── operating-point marker (vertical rule + one dot per series) ── */
       let mRule = null, mLabel = null, mDots = [];
       if (marker) {
-        mRule = el('line', { y1: m.t, y2: m.t + ih, class: marker.className || 'markrule' });
-        mLabel = el('text', { y: m.t - 9, 'text-anchor': 'middle', class: 'marklbl' });
+        mRule = el('line', { y1: m.t, y2: m.t + ih, class: marker.className || 'markrule', 'pointer-events': 'none' });
+        mLabel = el('text', { y: m.t - 9, 'text-anchor': 'middle', class: 'marklbl', 'pointer-events': 'none' });
         svg.appendChild(mRule); svg.appendChild(mLabel);
         mDots = cfg.series.map(s => {
-          const c = el('circle', { r: 5, fill: '#070B18', 'stroke-width': 2.4, class: 'markdot' });
+          const c = el('circle', { r: 5, fill: '#070B18', 'stroke-width': 2.4, class: 'markdot', 'pointer-events': 'none' });
           c.style.stroke = s.color;
           svg.appendChild(c);
           return c;

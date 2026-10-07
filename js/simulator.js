@@ -222,9 +222,9 @@ const Simulator = (() => {
       <div class="sbody">
         <div class="svisual">
           <div class="sim" id="simWrap">
-            <div class="panel__t" style="margin:0;flex-wrap:wrap;row-gap:6px">
-              <span>Pressure envelope — each axis as a multiple of its limit (log&#8322; scale)</span>
-              <span style="display:flex;gap:9px;align-items:center">
+            <div class="panel__t panel__t--flush">
+              <span>Pressure envelope — each axis as a multiple of its limit (log2 scale)</span>
+              <span class="row">
                 <span class="livechip" id="simChip">Live model</span>
                 <button class="linkbtn" type="button" id="simReset">Reset to 2025 baseline</button>
               </span>
@@ -255,7 +255,7 @@ const Simulator = (() => {
           ], 'cyan')}
           <div class="panel">
             <p class="panel__t"><span>Model note</span><span class="livechip">Calibrated</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="prose">
               The engine is built on flow and dilution rather than on a single capacity number. Its default state
               reproduces the documented peak day &mdash; about 480 MLD of sewage generated against 400 MLD treated,
               650 MT/day of waste reaching the Baswar plant, and a near-field coliform load above the
@@ -263,7 +263,7 @@ const Simulator = (() => {
               Coefficients are illustrative; the relationships are the ones the monitoring data showed.
             </p>
           </div>
-          <p class="datacite" style="border:0;padding:0">
+          <p class="datacite datacite--bare">
             <b>Active packages &middot;</b> <span id="simPkgNote">none</span>
           </p>
           <button class="linkbtn" data-goto="11">Open the decision matrix &rarr;</button>
@@ -434,15 +434,30 @@ const Simulator = (() => {
   function slideMatrix() {
     const node = document.createElement('section');
     node.className = 'slide'; node.id = 'sMatrix';
+    /* one stepper definition, used both in the table head and — on narrow
+       screens, where the head is hidden — in the stand-alone weights strip */
+    const stepper = c => `
+      <span class="wstep" data-k="${c.key}">
+        <button type="button" data-w="-1" aria-label="Reduce weight of ${c.full}">&minus;</button>
+        <b data-v>${weights[c.key]}</b>
+        <button type="button" data-w="1" aria-label="Increase weight of ${c.full}">+</button>
+      </span>`;
+
     const headCols = criteria.map(c => `
       <th data-k="${c.key}" title="${c.hint}">
         <span>${c.label}</span>
-        <span class="wstep">
-          <button type="button" data-w="-1" aria-label="Reduce weight of ${c.full}">−</button>
-          <b data-v>${weights[c.key]}</b>
-          <button type="button" data-w="1" aria-label="Increase weight of ${c.full}">+</button>
-        </span>
+        ${stepper(c)}
       </th>`).join('');
+
+    const weightsStrip = `
+      <div class="mx__weights" id="mxWeights">
+        <span class="mx__weights-t">Weights</span>
+        ${criteria.map(c => `
+          <span class="mx__w" data-k="${c.key}" title="${c.hint}">
+            <span class="mx__w-l">${c.label}</span>
+            ${stepper(c)}
+          </span>`).join('')}
+      </div>`;
     node.innerHTML = `
       ${head({ num:'11', kicker:'Decision support II', title:'Choosing Levers by <em>Weighted Trade-off</em>', tag:'Decision matrix' })}
       <div class="sbody sbody--flip">
@@ -452,18 +467,21 @@ const Simulator = (() => {
               <div class="mx__summary" id="mxSummary"></div>
               <button class="linkbtn" data-goto="10">&larr; Capacity simulator</button>
             </div>
-            <table class="mx__table">
-              <thead>
-                <tr>
-                  <th class="mx__rank">#</th>
-                  <th class="mx__pkg">Package</th>
-                  ${headCols}
-                  <th>Score</th>
-                  <th>Apply</th>
-                </tr>
-              </thead>
-              <tbody id="mxBody"></tbody>
-            </table>
+            ${weightsStrip}
+            <div class="mx__scroll">
+              <table class="mx__table">
+                <thead>
+                  <tr>
+                    <th class="mx__rank">#</th>
+                    <th class="mx__pkg">Package</th>
+                    ${headCols}
+                    <th>Score</th>
+                    <th>Apply</th>
+                  </tr>
+                </thead>
+                <tbody id="mxBody"></tbody>
+              </table>
+            </div>
             <div class="mx__detail" id="mxDetail"></div>
             <p class="mx__hint">Weights (0–4) are your policy priorities and re-rank the table. Scores are modelled judgements of each
             package on a 0–10 scale, not measurements. Applying a package wires its effect into the shared model &mdash;
@@ -481,13 +499,13 @@ const Simulator = (() => {
           ], 'violet')}
           <div class="panel">
             <p class="panel__t"><span>Reading the matrix</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="prose">
               A weighted matrix will not choose for you. What it does is make the argument explicit: raise the weight on
               river health and the cheap crowd-control package loses its lead to treatment capacity, which is slower and
               dearer but the only lever that subtracts directly from the untreated load.
             </p>
           </div>
-          ${cite('Package effects are applied to the calibrated model on slide 11; feasibility and speed scores reflect reported delivery experience of the 2025 arrangements (ICCC, PIB and Mela Authority briefings).')}
+          ${cite('Package effects are applied to the calibrated model on slide 10; feasibility and speed scores reflect reported delivery experience of the 2025 arrangements (ICCC, PIB and Mela Authority briefings).')}
         </div>
       </div>`;
 
@@ -495,11 +513,44 @@ const Simulator = (() => {
     const summary = $('#mxSummary', node);
     const detail  = $('#mxDetail', node);
 
-    /* ── weights ── */
-    $('thead', node).addEventListener('click', e => {
+    /* Rows are created once and updated in place. Rebuilding innerHTML on
+       every render would drop keyboard focus off the Apply button and restart
+       the score-bar transitions every time a weight changes. */
+    const rowEls = new Map();
+    DECK.simPackages.forEach(p => {
+      const tr = document.createElement('tr');
+      tr.dataset.id = p.id;
+      tr.innerHTML =
+        '<td data-label="Rank"><span class="rank"></span></td>' +
+        '<td class="mx__pkg"><b></b><i></i><em></em></td>' +
+        criteria.map(c => `<td data-label="${c.label}"><span class="sc"><b></b><i></i></span></td>`).join('') +
+        '<td data-label="Score"><span class="tot"><b></b><i></i></span></td>' +
+        `<td data-label="Apply"><button class="mx__apply" type="button" data-id="${p.id}"></button></td>`;
+      tr.querySelector('.mx__pkg b').textContent = p.name;
+      tr.querySelector('.mx__pkg i').textContent = p.sub;
+      rowEls.set(p.id, {
+        tr,
+        rank:  tr.querySelector('.rank'),
+        tag:   tr.querySelector('.mx__pkg em'),
+        cells: criteria.map(c => {
+          const td = tr.querySelector(`td[data-label="${c.label}"]`);
+          return { key: c.key, span: td.querySelector('.sc'), b: td.querySelector('.sc b'), bar: td.querySelector('.sc i') };
+        }),
+        totB:  tr.querySelector('.tot b'),
+        totI:  tr.querySelector('.tot i'),
+        apply: tr.querySelector('.mx__apply')
+      });
+      body.appendChild(tr);
+    });
+
+    /* ── weights (delegated, so both the table head and the strip work) ── */
+    node.addEventListener('click', e => {
       const b = e.target.closest('button[data-w]');
       if (!b) return;
-      const k = b.closest('th').dataset.k;
+      const holder = b.closest('[data-k]');
+      if (!holder) return;
+      const k = holder.dataset.k;
+      if (!(k in weights)) return;
       weights[k] = Math.max(0, Math.min(4, weights[k] + parseInt(b.dataset.w, 10)));
       render();
     });
@@ -532,38 +583,68 @@ const Simulator = (() => {
       const now = current();
       const bind = now.binding || now.peak;
 
-      /* header weight readouts (the table is rebuilt below, its head is not) */
-      node.querySelectorAll('thead th[data-k]').forEach(th => {
-        const b = th.querySelector('.wstep b');
-        if (b) b.textContent = weights[th.dataset.k];
+      /* weight readouts live in two places — the table head and, on narrow
+         screens, the stand-alone strip. Keep both in step. */
+      node.querySelectorAll('[data-k] .wstep b').forEach(b => {
+        const k = b.closest('[data-k]').dataset.k;
+        if (k in weights) b.textContent = weights[k];
       });
 
-      body.innerHTML = rows.map((r, i) => {
+      /* Re-ranking moves rows. Moving a node detaches it, which blurs whatever
+         inside it had focus — so remember it, and only reorder when the order
+         has actually changed. */
+      const focused = window.document.activeElement;
+      const refocus = focused && body.contains(focused) ? focused : null;
+      const wantOrder = rows.map(r => r.p.id).join(',');
+
+      rows.forEach((r, i) => {
         const p = r.p;
         const on = activePkg.has(p.id);
         const pv = preview(p);
         const cls = pv.fixes ? 'fix' : pv.delta < -0.01 ? 'ease' : '';
         const tag = pv.fixes ? 'clears the binding limit' : pv.delta < -0.01
           ? `${pv.key} ${pv.before.toFixed(2)}× → ${pv.after.toFixed(2)}×`
-          : `no relief on the binding limit`;
-        const cells = criteria.map(c => {
+          : 'no relief on the binding limit';
+        const R = rowEls.get(p.id);
+        if (!R) return;
+
+        R.tr.dataset.rank = i + 1;
+        R.tr.className = `${on ? 'is-on ' : ''}${selectedPkg === p.id ? 'is-sel' : ''}`.trim();
+        R.rank.textContent = i + 1;
+        if (R.tag.className !== cls) R.tag.className = cls;
+        if (R.tag.textContent !== tag) R.tag.textContent = tag;
+
+        R.cells.forEach(c => {
           const s = p.scores[c.key] || 0;
           const band = s >= 8 ? 'hi' : s >= 6 ? 'mid' : s <= 3 ? 'low' : '';
-          return `<td><span class="sc ${band ? 'sc--' + band : ''}"><b>${s}</b><i style="--w:${s * 10}%"></i></span></td>`;
-        }).join('');
-        const tot = r.score;
-        return `<tr data-id="${p.id}" data-rank="${i + 1}" class="${on ? 'is-on' : ''}${selectedPkg === p.id ? ' is-sel' : ''}">
-          <td><span class="rank">${i + 1}</span></td>
-          <td class="mx__pkg">
-            <b>${p.name}</b>
-            <i>${p.sub}</i>
-            <em class="${cls}">${tag}</em>
-          </td>
-          ${cells}
-          <td><span class="tot"><b>${tot.toFixed(0)}</b><i style="--w:${tot}%"></i></span></td>
-          <td><button class="mx__apply" type="button" aria-pressed="${on}" data-id="${p.id}">${on ? 'Applied' : 'Apply'}</button></td>
-        </tr>`;
-      }).join('');
+          const cl = band ? `sc sc--${band}` : 'sc';
+          if (c.span.getAttribute('class') !== cl) c.span.setAttribute('class', cl);
+          const txt = String(s);
+          if (c.b.textContent !== txt) c.b.textContent = txt;
+          c.bar.style.setProperty('--w', (s * 10) + '%');
+        });
+
+        const totTxt = r.score.toFixed(0);
+        if (R.totB.textContent !== totTxt) R.totB.textContent = totTxt;
+        R.totI.style.setProperty('--w', r.score.toFixed(1) + '%');
+
+        R.apply.setAttribute('aria-pressed', String(on));
+        const label = on ? 'Applied' : 'Apply';
+        if (R.apply.textContent !== label) R.apply.textContent = label;
+
+      });
+
+      if (body.dataset.order !== wantOrder) {
+        body.dataset.order = wantOrder;
+        /* appendChild moves existing nodes rather than recreating them, so
+           listeners and per-row state survive the re-rank */
+        rows.forEach(r => body.appendChild(rowEls.get(r.p.id).tr));
+      }
+      /* moving a focused node blurs it; put focus back where the user had it */
+      if (refocus && window.document.activeElement !== refocus &&
+          window.document.contains(refocus)) {
+        refocus.focus({ preventScroll: true });
+      }
 
       const on = [...activePkg].map(id => (PKG[id] || {}).name).filter(Boolean);
       const lead = rows[0];

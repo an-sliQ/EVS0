@@ -1,25 +1,53 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="command">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Digital Assessment of Carrying Capacity — Maha Kumbh 2025, Prayagraj</title>
-<meta name="description" content="An interactive 12-slide case study on the digital assessment of carrying capacity at Maha Kumbh 2025, Prayagraj — hydrological stress, waste load, crowd analytics and policy recommendations." />
+<meta name="description" content="An interactive twelve-slide case study on the digital assessment of carrying capacity at Maha Kumbh 2025, Prayagraj — hydrological stress, waste load, crowd analytics, a live capacity simulator and a weighted decision matrix." />
 <meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#04070F" />
+<meta name="robots" content="index,follow" />
+<meta name="author" content="EVS0" />
+
+<!-- Social preview -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Digital Assessment of Carrying Capacity — Maha Kumbh 2025" />
+<meta property="og:description" content="How the world's largest human gathering pressed against the physical, ecological and social limits of the Triveni Sangam — and how digital systems made those limits measurable in real time." />
+<meta property="og:image" content="assets/hero-sangam-aerial.jpg" />
+<meta property="og:site_name" content="Carrying Capacity · Maha Kumbh 2025" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Digital Assessment of Carrying Capacity — Maha Kumbh 2025" />
+<meta name="twitter:description" content="Hydrological stress, waste load and crowd analytics from Maha Kumbh 2025, with a live capacity simulator and decision matrix." />
+<meta name="twitter:image" content="assets/hero-sangam-aerial.jpg" />
+
+<!-- Installed / standalone behaviour -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Carrying Capacity" />
+
+<!-- Critical assets: two variable fonts + the hero photograph -->
+<link rel="preload" as="font" type="font/woff2" href="fonts/inter-latin-var.woff2" crossorigin />
+<link rel="preload" as="font" type="font/woff2" href="fonts/newsreader-latin-var.woff2" crossorigin />
 <link rel="preload" as="image" href="assets/hero-sangam-aerial.jpg" />
+
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23FF8A1F'/><circle cx='50' cy='50' r='20' fill='%23060A18'/></svg>" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%2304070F'/><circle cx='50' cy='50' r='34' fill='%23FF8A1F'/><circle cx='50' cy='50' r='15' fill='%2304070F'/></svg>" />
+
+<link rel="stylesheet" href="css/fonts.css" />
 <link rel="stylesheet" href="css/deck.css" />
 </head>
 <body>
 
 <!-- ══ Boot screen ══════════════════════════════════════════════════════ -->
-<div id="boot" class="boot" aria-hidden="true">
+<div id="boot" class="boot" role="status" aria-label="Loading">
   <div class="boot__mark"><span></span><span></span><span></span></div>
   <p class="boot__label">Loading field data&hellip;</p>
 </div>
 
 <!-- ══ Deck ═════════════════════════════════════════════════════════════ -->
-<main id="deck" class="deck" role="region" aria-label="Maha Kumbh 2025 case study presentation" aria-live="polite">
+<main id="deck" class="deck" role="region" aria-label="Maha Kumbh 2025 case study presentation">
   <!-- slides injected by js/slides.js -->
 </main>
 
@@ -28,17 +56,17 @@
 
 <header class="topbar">
   <div class="topbar__brand">
-    <span class="branddot"></span>
+    <span class="branddot" aria-hidden="true"></span>
     <span class="topbar__title">Carrying Capacity &middot; Maha Kumbh 2025</span>
   </div>
   <div class="topbar__tools">
-    <button class="iconbtn" id="btnSound" title="Toggle ambient sound (S)" aria-label="Toggle ambient sound">
+    <button class="iconbtn" id="btnSound" title="Toggle ambient sound (S)" aria-label="Toggle ambient sound" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h3l4 4V5L7 9H4z"/><path class="wave" d="M15.5 8.5a5 5 0 010 7"/><path class="wave" d="M18 6a8.5 8.5 0 010 12"/></svg>
     </button>
-    <button class="iconbtn" id="btnOverview" title="Slide overview (O)" aria-label="Slide overview">
+    <button class="iconbtn" id="btnOverview" title="Slide overview (O)" aria-label="Slide overview" aria-expanded="false" aria-controls="overview">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </button>
-    <button class="iconbtn" id="btnHelp" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">
+    <button class="iconbtn" id="btnHelp" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts" aria-expanded="false" aria-controls="help">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.2a2.6 2.6 0 015 .9c0 1.7-2.4 2-2.4 3.6"/><circle cx="12" cy="17.4" r=".9" fill="currentColor" stroke="none"/></svg>
     </button>
   </div>
@@ -55,16 +83,22 @@
   </div>
   <ol class="dots" id="dots" aria-label="Jump to slide"></ol>
   <div class="bottombar__right">
-    <span class="counter"><b id="curNum">01</b><i>/</i><span id="totNum">10</span></span>
+    <span class="counter" aria-hidden="true"><b id="curNum">01</b><i>/</i><span id="totNum">12</span></span>
     <span class="slide-label" id="slideLabel">&nbsp;</span>
   </div>
 </nav>
 
+<!-- ══ First-run hint ═══════════════════════════════════════════════════ -->
+<p class="nxhint" id="nxHint" hidden>
+  <span class="nxhint__touch">Swipe left or right to move between slides</span>
+  <span class="nxhint__key">Press <kbd>?</kbd> for shortcuts &middot; <kbd>&rarr;</kbd> to advance</span>
+</p>
+
 <!-- ══ Overview grid ════════════════════════════════════════════════════ -->
-<div class="overlay" id="overview" hidden>
+<div class="overlay" id="overview" role="dialog" aria-modal="true" aria-labelledby="ovTitle" hidden>
   <div class="overlay__panel">
     <div class="overlay__head">
-      <h2>All slides</h2>
+      <h2 id="ovTitle">All slides</h2>
       <button class="iconbtn" data-close-overlay aria-label="Close overview">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -74,17 +108,17 @@
 </div>
 
 <!-- ══ Help sheet ═══════════════════════════════════════════════════════ -->
-<div class="overlay" id="help" hidden>
+<div class="overlay" id="help" role="dialog" aria-modal="true" aria-labelledby="helpTitle" hidden>
   <div class="overlay__panel overlay__panel--narrow">
     <div class="overlay__head">
-      <h2>How to drive this deck</h2>
+      <h2 id="helpTitle">How to drive this deck</h2>
       <button class="iconbtn" data-close-overlay aria-label="Close help">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
     <dl class="keymap">
-      <div><dt><kbd>→</kbd><kbd>Space</kbd></dt><dd>Next slide</dd></div>
-      <div><dt><kbd>←</kbd></dt><dd>Previous slide</dd></div>
+      <div><dt><kbd>&rarr;</kbd><kbd>Space</kbd></dt><dd>Next slide</dd></div>
+      <div><dt><kbd>&larr;</kbd></dt><dd>Previous slide</dd></div>
       <div><dt><kbd>1</kbd>&ndash;<kbd>9</kbd><kbd>0</kbd></dt><dd>Jump to slide (0 = last)</dd></div>
       <div><dt><kbd>O</kbd></dt><dd>Slide overview grid</dd></div>
       <div><dt><kbd>G</kbd></dt><dd>Toggle guided walkthrough</dd></div>
@@ -98,18 +132,19 @@
 </div>
 
 <!-- ══ Guided walkthrough caption ═══════════════════════════════════════ -->
-<aside class="guide" id="guide" hidden aria-live="polite">
+<aside class="guide" id="guide" hidden>
   <span class="guide__tag" id="guideTag">Insight</span>
   <p class="guide__text" id="guideText"></p>
 </aside>
 
 <!-- ══ Live region for a11y announcements ═══════════════════════════════ -->
-<p class="sr-only" id="srStatus" aria-live="polite"></p>
+<p class="sr-only" id="srStatus" role="status" aria-live="polite"></p>
 
 <noscript>
   <div class="noscript-note">
     <h1>Digital Assessment of Carrying Capacity</h1>
     <p>This interactive case study on Maha Kumbh 2025, Prayagraj requires JavaScript. Please enable it to explore all twelve slides, including the capacity simulator and decision matrix.</p>
+    <p>All figures are reproduced from publicly reported monitoring data and official statements made during and about the 2025 event; principal sources are the Central Pollution Control Board, the Uttar Pradesh Pollution Control Board, National Green Tribunal records, ICCC operational briefings and Press Information Bureau releases.</p>
   </div>
 </noscript>
 
