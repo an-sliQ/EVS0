@@ -865,7 +865,7 @@ const Slides = (() => {
     const node = document.createElement('section');
     node.className = 'slide'; node.id = 's10';
     node.innerHTML = `
-      ${head({ num:'10', kicker:'Conclusion', title:'Resilience Built on <em>Measurement</em>', tag:'References' })}
+      ${head({ num:'12', kicker:'Conclusion', title:'Resilience Built on <em>Measurement</em>', tag:'References' })}
       <div class="sbody">
         <div class="svisual svisual--photo">
           <div class="svisual__media">
@@ -921,8 +921,16 @@ const Slides = (() => {
     return { node, init };
   }
 
+  /* ══════════════════════════════════════════════════════════════════
+     SLIDES 10–11 · Capacity simulator and decision matrix
+     Built by js/simulator.js — one shared model, two views.
+     ══════════════════════════════════════════════════════════════════ */
+  const slide10b = () => Simulator.slideSimulator();
+  const slide11b = () => Simulator.slideMatrix();
+
   /* ── assembly ───────────────────────────────────────────────────── */
-  const builders = [slide1, slide2, slide3, slide4, slide5, slide6, slide7, slide8, slide9, slide10];
+  const builders = [slide1, slide2, slide3, slide4, slide5, slide6, slide7, slide8, slide9,
+                    slide10b, slide11b, slide10];
 
   function build() {
     return builders.map((fn, i) => {
