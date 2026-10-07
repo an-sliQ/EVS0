@@ -127,10 +127,18 @@
       case 'f': case 'F': toggleFullscreen(); break;
       default:
         if (/^[0-9]$/.test(e.key)) {
-          const n = e.key === '0' ? 9 : parseInt(e.key, 10) - 1;
+          const n = e.key === '0' ? slides.length - 1 : parseInt(e.key, 10) - 1;
           if (n < slides.length) go(n);
         }
     }
+  });
+
+  /* ── cross-slide links (e.g. simulator ⇄ decision matrix) ───────── */
+  document.addEventListener('deck:goto', e => {
+    const i = e.detail && e.detail.index;
+    if (typeof i !== 'number') return;
+    closeOverlays();
+    go(i);
   });
 
   /* ── swipe ──────────────────────────────────────────────────────── */

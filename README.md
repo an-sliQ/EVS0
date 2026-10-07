@@ -1,9 +1,10 @@
 # Digital Assessment of Carrying Capacity
 ### A case study of Maha Kumbh 2025, Prayagraj
 
-An interactive, ten-slide website examining how the world's largest human gathering pressed
+An interactive, twelve-slide website examining how the world's largest human gathering pressed
 against the physical, ecological and social limits of the Triveni Sangam — and how digital
-systems made those limits measurable in real time.
+systems made those limits measurable in real time. It closes with a working capacity simulator
+and a weighted decision matrix that share one model.
 
 Built as a self-contained static site. No build step, no frameworks, no external CDNs,
 no network calls at runtime.
@@ -44,7 +45,9 @@ Or open `index.html` directly. Everything works from the file system.
 | 07 | Comparative stress analysis | Stress meter comparing city baseline against Mela peak, plus a composite gauge |
 | 08 | Smart solutions & green engineering | Six expandable solution cards with icons |
 | 09 | Strategic policy recommendations | Digital-twin blueprint with five selectable policy nodes |
-| 10 | Conclusion & references | Expandable reference cards with a method note |
+| 10 | **Capacity simulator** | Six levers driving a live crowd / river / waste pressure envelope, with the binding constraint named in real time |
+| 11 | **Decision matrix** | Six intervention packages scored against five adjustable-weight criteria; applying a package rewires the simulator |
+| 12 | Conclusion & references | Expandable reference cards with a method note |
 
 ---
 
@@ -54,7 +57,7 @@ Or open `index.html` directly. Everything works from the file system.
 |---|---|
 | `→` `Space` `PageDown` | Next slide |
 | `←` `PageUp` | Previous slide |
-| `1`–`9`, `0` | Jump to slide |
+| `1`–`9`, `0` | Jump to slide (`0` = last slide) |
 | `O` | Slide overview grid |
 | `?` | Keyboard shortcut sheet |
 | `G` | Guided walkthrough (auto-advances with narration) |
@@ -94,6 +97,35 @@ such in the interface.
 
 ---
 
+## The simulator model
+
+Slide 10 runs one small engine. Pressure on each axis is expressed as a multiple of that axis's
+limit, so the three are directly comparable and the **binding constraint is simply the largest
+of the three** — which changes as the levers move:
+
+| Axis | Pressure | Limit |
+|---|---|---|
+| Crowd & physical | bathers arriving in the peak hour against the hourly throughput of the bathing frontage, expressed as corridor and approach density | 2.5 persons/m² operational control band |
+| River & ecological | untreated discharge × raw load, diluted by the reach flow available for near-field mixing; the worst of BOD, faecal coliform and dissolved oxygen governs | 3 mg/L BOD · 2,500 MPN/100 mL · 5 mg/L DO |
+| Waste & land | solid waste arriving against processing capacity | processing capacity |
+
+Defaults are calibrated so the starting state reproduces the documented peak day — about 480 MLD
+of sewage generated against 400 MLD treated, 650 MT/day of waste reaching the Baswar plant, and a
+near-field coliform load of roughly 2.3× the criterion. From there the crowd axis binds if the
+inflow and frontage levers are pushed, the river axis binds if treatment or dilution fall, and a
+well-set combination leaves no axis over its limit at all.
+
+Slide 11 scores six intervention packages against crowd safety, river health, waste handling,
+speed to deploy and feasibility. Weights are yours (0–4) and re-rank the table live; every package
+carries a modelled effect on the same levers, so applying one immediately moves the pressure
+envelope, the axis cards and the binding-constraint verdict on slide 10.
+
+**Modelled, not measured:** package scores, feasibility ratings and every coefficient in the engine
+are illustrative judgements built to the published ranges. The relationships — not the decimals —
+are what the 2025 monitoring record supports.
+
+---
+
 ## File structure
 
 ```
@@ -101,7 +133,8 @@ index.html          markup shell, chrome, overlays
 css/deck.css        full design system — tokens, layout, components, responsive rules
 js/data.js          content model: figures, series, sources, guided narration
 js/charts.js        dependency-free SVG charting (line, heatmap, gauge, Venn)
-js/slides.js        the ten slide builders and their interactive behaviour
+js/slides.js        the ten document slide builders and their interactive behaviour
+js/simulator.js     capacity-simulator engine plus the simulator and decision-matrix slides
 js/app.js           navigation, keyboard, swipe, overlays, guided mode, audio
 assets/             three photographs — hero aerial, monitoring dawn, finale sunset
 ```
@@ -117,4 +150,8 @@ assets/             three photographs — hero aerial, monitoring dawn, finale s
 - Charts are inline SVG, redrawn on resize via a single `ResizeObserver` per host.
 - The crowd simulation pauses via `requestAnimationFrame` cancellation when its slide is
   inactive or the tab is hidden.
+- The simulator engine recomputes on `input` but paints at most once per animation frame, so
+  dragging a lever stays smooth while both slides stay in sync.
+- Overlays are hidden with the `hidden` attribute backed by `[hidden]{display:none!important}`,
+  which is what makes them closable — an author `display` rule otherwise outranks the UA rule.
 - Total payload is under 1 MB, dominated by the three JPEG stills.

@@ -17,6 +17,8 @@ const DECK = (() => {
     { id:'stress',   label:'Comparative Stress',short:'City vs. Mela demand',  note:'Load ratios and stress index' },
     { id:'green',    label:'Green Engineering',short:'Smart solutions',        note:'Bio-toilets, Miyawaki, circular waste' },
     { id:'policy',   label:'Recommendations',  short:'Digital twin blueprint', note:'Five strategic policy levers' },
+    { id:'simulator',label:'Capacity Simulator',short:'Crowd vs. ecology',     note:'Live pressure envelope and binding limit' },
+    { id:'matrix',   label:'Decision Matrix',  short:'Weighted package choice',note:'Six packages against five criteria' },
     { id:'conclusion',label:'Conclusion',      short:'Resilience & sources',   note:'Findings and reference base' }
   ];
 
@@ -108,6 +110,59 @@ const DECK = (() => {
     { id:'circ',  x:36, y:74, label:'Circular waste',     color:'#FFC24B', text:'Incentivise segregation at source and tie wet waste into bio-CNG and cement kiln co-processing contracts that outlive the festival.' }
   ];
 
+  /* ── Decision matrix: weighted criteria ───────────────────────────────
+     Weights are the user's policy priorities (0–4). Scores are modelled
+     judgements of each package against those criteria, not measurements. */
+  const simCriteria = [
+    { key:'crowd', label:'Crowd',  full:'Crowd safety',                 hint:'Holds density in the bathing corridor inside the control band', weight:3 },
+    { key:'river', label:'River',  full:'River & ecology',              hint:'Cuts the untreated load that reaches the bathing reach',       weight:3 },
+    { key:'waste', label:'Waste',  full:'Waste & land',                 hint:'Raises processing headroom above the peak-day load',           weight:2 },
+    { key:'speed', label:'Speed',  full:'Speed to deploy',              hint:'How fast it stands up before the next peak bathing day',       weight:2 },
+    { key:'feas',  label:'Feas.',  full:'Cost & feasibility',           hint:'Capital, land, and inter-agency difficulty',                   weight:2 }
+  ];
+
+  /* ── Decision matrix: intervention packages ───────────────────────────
+     Each package carries a modelled effect on the simulator levers, so the
+     matrix and the capacity simulator read from one state. */
+  const simPackages = [
+    {
+      id:'meter', name:'Meter inflow & stage diversions', sub:'AI camera thresholds · wireless grid · pontoon metering',
+      scores:{ crowd:9, river:4, waste:3, speed:9, feas:8 },
+      effect:{ spreadMul:0.7 },
+      note:'Shaves the busiest hour of the bathing peak and holds corridor density inside the control band. It does nothing for the river: the same load reaches the water, only more slowly.'
+    },
+    {
+      id:'frontage', name:'Expand ghat & pontoon frontage', sub:'Extra bathing lanes upstream and downstream of the Sangam',
+      scores:{ crowd:8, river:3, waste:2, speed:5, feas:4 },
+      effect:{ frontageAdd:4, spreadMul:0.95 },
+      note:'Four more kilometres of frontage lifts hourly throughput by a third and spreads the crowd sideways — but it is built on the same eroding bank it is meant to relieve.'
+    },
+    {
+      id:'toilet', name:'Decentralised treatment & bio-toilets', sub:'On-site digesters · tanker routing · tertiary polishing',
+      scores:{ crowd:2, river:9, waste:6, speed:6, feas:5 },
+      effect:{ treatmentAdd:180 },
+      note:'Every 100 MLD of treatment brought forward subtracts directly from the untreated discharge that carries the coliform load into the bathing reach.'
+    },
+    {
+      id:'flow', name:'Upstream flow augmentation', sub:'Reservoir release schedule negotiated with the basin authority',
+      scores:{ crowd:1, river:8, waste:1, speed:3, feas:2 },
+      effect:{ flowMul:1.5 },
+      note:'Dilution is the fastest ecological lever and the most fragile: it depends on stored water the state does not fully control, released on somebody else&rsquo;s schedule.'
+    },
+    {
+      id:'circular', name:'Circular waste & WtE contracts', sub:'Source segregation · bio-CNG · cement kiln co-processing',
+      scores:{ crowd:1, river:4, waste:9, speed:5, feas:6 },
+      effect:{ wasteAdd:350, treatmentAdd:40 },
+      note:'Segregation at source keeps wet waste out of the drains, which is also the cheapest way to cut the organic load reaching both rivers.'
+    },
+    {
+      id:'twin', name:'Permanent digital twin & dynamic thresholds', sub:'Always-on basin model · thresholds that move with river state',
+      scores:{ crowd:6, river:6, waste:5, speed:4, feas:5 },
+      effect:{ spreadMul:0.85, treatmentAdd:60, wasteAdd:110 },
+      note:'The twin is the only package that improves all three axes at once — modestly — because it improves the timing of every other lever rather than adding capacity of its own.'
+    }
+  ];
+
   /* ── Guided walkthrough narration (written in this deck's words) ──── */
   const guide = {
     title:'Forty-five days and four hundred million visits. This study asks a single question — how much can a place take before the system starts to fail? We answer it with the instruments that were actually running at Prayagraj in 2025.',
@@ -119,8 +174,11 @@ const DECK = (() => {
     stress:'Put the city and the festival side by side and the ratios do the talking. Population multiplies eighty-fold; waste load multiplies tenfold; water demand outruns supply on every peak day.',
     green:'The engineering response was largely circular. Toilets with zero discharge, plastic elimination enforced on the ground, dense native plantations, and waste routed into energy and cement kilns.',
     policy:'Five levers turn a one-off response into standing capability: a permanent digital twin, thresholds that move, public water data, machine-assisted reallocation, and a waste economy with a life beyond the event.',
+    simulator:'This is the whole study compressed into one engine. Crowd pressure and ecological pressure are computed from the same levers, and the higher of the two is the binding limit. At the documented peak the river binds first: the crowd system holds inside its control band while coliform runs past the criterion. Strengthen treatment and watch the constraint move to the crowd, to waste, or to nothing at all.',
+    matrix:'Choosing between the levers is a weighted decision, not a technical one. Score each package against crowd safety, ecology, waste, speed and feasibility, set your own weights, and the ranking reorders. Apply a package and it is wired straight into the simulator, so you can see which limit it actually relieves before you spend the money.',
     conclusion:'The conclusion is not that the rivers were saved. It is that for the first time the failure points were measurable in real time — and that measurement, not the scale of the gathering, is the reusable asset.'
   };
 
-  return { index, sources, waterSeries, heatmap, stressRows, sensorModel, policyPins, guide };
+  return { index, sources, waterSeries, heatmap, stressRows, sensorModel, policyPins,
+           simCriteria, simPackages, guide };
 })();

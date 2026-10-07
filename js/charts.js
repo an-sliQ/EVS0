@@ -53,16 +53,21 @@ const Charts = (() => {
 
   /* ══ 1. Multi-series line chart ══════════════════════════════════ */
   /**
-   * cfg = { labels, series:[{key,name,color,values,axis:'y1'|'y2',dashed}],
+   * cfg = { labels, series:[{key,name,color,values,axis:'y1'|'y2',dashed,fmt}],
    *         thresholds:[{axis,value,label,color}], y1:{min,max,label,tickFmt,d},
-   *         y2:{min,max,label,d}, height }
+   *         y2:{min,max,label,d}, marker:{index,label}, animate, minHeight }
    */
   function lineChart(host, cfg) {
     host.innerHTML = '';
+    /* optional vertical marker: cfg.marker = { index, label, className } */
+    let marker = cfg.marker ? Object.assign({}, cfg.marker) : null;
+    let placeMarker = null;
     const draw = () => {
       host.innerHTML = '';
       const W = Math.max(host.clientWidth || 640, 320);
-      const H = Math.max(host.clientHeight || 320, 220);
+      /* cfg.minHeight keeps a short host (e.g. a compact simulator panel) from
+         being drawn into a taller viewBox and squashed by preserveAspectRatio */
+      const H = Math.max(host.clientHeight || 320, cfg.minHeight || 220);
       const m = { t: 26, r: cfg.y2 ? 52 : 18, b: 40, l: 46 };
       const iw = W - m.l - m.r, ih = H - m.t - m.b;
       const n = cfg.labels.length;
@@ -133,7 +138,7 @@ const Charts = (() => {
         if (s.area) {
           const area = el('path', {
             d: d + ` L ${pts[pts.length - 1][0].toFixed(1)} ${m.t + ih} L ${pts[0][0].toFixed(1)} ${m.t + ih} Z`,
-            fill: s.color, class: 'series-area rise'
+            fill: s.color, class: 'series-area' + (cfg.animate === false ? '' : ' rise')
           });
           area.style.setProperty('--d', delay);
           g.appendChild(area);
@@ -142,7 +147,7 @@ const Charts = (() => {
           d, class: 'series-line', stroke: s.color,
           'stroke-dasharray': s.dashed ? '6 4' : undefined
         });
-        if (!s.dashed) {
+        if (!s.dashed && cfg.animate !== false) {
           const L = pts.reduce((acc, p, i) => i ? acc + Math.hypot(p[0] - pts[i - 1][0], p[1] - pts[i - 1][1]) : 0, 0);
           path.style.setProperty('--len', Math.ceil(L) + 2);
           path.classList.add('draw');
@@ -155,7 +160,7 @@ const Charts = (() => {
           const c = el('circle', { cx: p[0], cy: p[1], r: 3.6, fill: '#070B18', stroke: s.color, 'stroke-width': 2.1, class: 'dot' });
           const ev = s.events && s.events[i];
           bindTip(c, () => `${cfg.labels[i]}${ev ? ' · ' + ev.tag : ''}`,
-            () => `${s.name}: ${fmt(s.values[i], s.d ?? 2)}${s.unit ? ' ' + s.unit : ''}`);
+            () => `${s.name}: ${s.fmt ? s.fmt(s.values[i], i) : fmt(s.values[i], s.d ?? 2)}${s.unit ? ' ' + s.unit : ''}`);
           c.addEventListener('click', () => {
             svg.querySelectorAll('.dot.pinned').forEach(d2 => d2.classList.remove('pinned'));
             c.classList.add('pinned');
@@ -172,12 +177,60 @@ const Charts = (() => {
         svg.appendChild(g);
       });
 
+      /* ── operating-point marker (vertical rule + one dot per series) ── */
+      let mRule = null, mLabel = null, mDots = [];
+      if (marker) {
+        mRule = el('line', { y1: m.t, y2: m.t + ih, class: marker.className || 'markrule' });
+        mLabel = el('text', { y: m.t - 9, 'text-anchor': 'middle', class: 'marklbl' });
+        svg.appendChild(mRule); svg.appendChild(mLabel);
+        mDots = cfg.series.map(s => {
+          const c = el('circle', { r: 5, fill: '#070B18', 'stroke-width': 2.4, class: 'markdot' });
+          c.style.stroke = s.color;
+          svg.appendChild(c);
+          return c;
+        });
+      }
+      /* linear read of a series at a possibly fractional index */
+      const at = (vals, i) => {
+        const i0 = Math.max(0, Math.min(n - 1, Math.floor(i)));
+        const i1 = Math.max(0, Math.min(n - 1, i0 + 1));
+        const f = Math.max(0, Math.min(1, i - i0));
+        return vals[i0] + (vals[i1] - vals[i0]) * f;
+      };
+      /* positions the marker without redrawing (used by slider drags) */
+      placeMarker = (i, label) => {
+        if (!mRule) return;
+        const idx = Math.max(0, Math.min(n - 1, i));
+        const x = sx(idx);
+        const near = 62;
+        const lx = x < m.l + near ? x + 7 : x > m.l + iw - near ? x - 7 : x;
+        mRule.setAttribute('x1', x); mRule.setAttribute('x2', x);
+        mLabel.setAttribute('x', lx);
+        mLabel.setAttribute('text-anchor', x < m.l + near ? 'start' : x > m.l + iw - near ? 'end' : 'middle');
+        mLabel.textContent = (label ?? marker.label) || cfg.labels[Math.round(idx)];
+        mDots.forEach((c, k) => {
+          const s = cfg.series[k];
+          c.setAttribute('cx', x);
+          c.setAttribute('cy', sy(at(s.values, idx), s.axis));
+        });
+      };
+      if (marker) placeMarker(marker.index, marker.label);
+
       host.appendChild(svg);
     };
 
     draw();
     observe(host, draw);
-    return { redraw: draw };
+    return {
+      redraw: draw,
+      /* move the operating-point marker; pass label to override the tick text */
+      setMarker: (index, label) => {
+        if (!marker) marker = { index };
+        marker.index = index;
+        if (label !== undefined) marker.label = label;
+        if (placeMarker) placeMarker(marker.index, marker.label);
+      }
+    };
   }
 
   /* ══ 2. Heatmap grid ═════════════════════════════════════════════ */
