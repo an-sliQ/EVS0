@@ -55,7 +55,7 @@ body{
   overflow:hidden;overscroll-behavior:none;
 }
 h1,h2,h3,h4,p,ol,ul,dl,dd,dt,figure{margin:0;padding:0}
-ol,ul{list-style:none}
+ol,ul{list-style:none}[hidden]{display:none!important}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 img{display:block;max-width:100%}
 svg{display:block}
