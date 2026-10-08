@@ -26,9 +26,11 @@ Or open `index.html` directly. Everything works from the file system.
 
 | Rule | How it is applied |
 |---|---|
-| **6×6 rule** | Maximum six bullets per slide, maximum six words per bullet. Enforced in `js/slides.js`. |
+| **Six-point brief** | Maximum six key points per slide, kept to a single line each. Rendered as a numbered, hairline-separated list in `js/slides.js`. |
 | **Visual dominance** | The graphic panel takes roughly 63% of every slide body; text sits in the narrower column. |
 | **Data-first** | Every quantitative claim carries a figure and a source note. Charts, maps and gauges lead each slide. |
+| **Flat system** | Solid surfaces, 1px hairlines and one accent (saffron). No gradient washes, no glow shadows, no decorative gradients — colour is reserved for data and status. |
+| **Type system** | Fraunces (display serif), Instrument Sans (text), IBM Plex Mono (data labels). Self-hosted woff2 in `assets/fonts`, preloaded, `font-display: swap`. |
 
 ---
 
@@ -65,7 +67,11 @@ Or open `index.html` directly. Everything works from the file system.
 | `F` | Fullscreen |
 | `Home` / `End` | First / last slide |
 | `Esc` | Close overlays |
-| Swipe / scroll wheel | Change slides on touch and desktop |
+| Swipe (touch) | Change slides on touch devices |
+
+Scrolling never changes slides: the wheel/touchpad scrolls whatever is scrollable
+under the cursor (the brief column, the simulator, the decision matrix) and does
+nothing elsewhere. A stray trackpad gesture flipping pages is treated as a bug.
 
 ---
 
@@ -130,13 +136,14 @@ are what the 2025 monitoring record supports.
 
 ```
 index.html          markup shell, chrome, overlays
-css/deck.css        full design system — tokens, layout, components, responsive rules
+css/deck.css        full design system — fonts, tokens, layout, components, responsive rules
 js/data.js          content model: figures, series, sources, guided narration
 js/charts.js        dependency-free SVG charting (line, heatmap, gauge, Venn)
-js/slides.js        the ten document slide builders and their interactive behaviour
+js/slides.js        the twelve slide builders and their interactive behaviour
 js/simulator.js     capacity-simulator engine plus the simulator and decision-matrix slides
 js/app.js           navigation, keyboard, swipe, overlays, guided mode, audio
 assets/             three photographs — hero aerial, monitoring dawn, finale sunset
+assets/fonts/       self-hosted woff2 — Fraunces (variable), Instrument Sans (variable), IBM Plex Mono
 ```
 
 ---
@@ -144,9 +151,14 @@ assets/             three photographs — hero aerial, monitoring dawn, finale s
 ## Accessibility & performance notes
 
 - Full keyboard navigation; inactive slides are `visibility:hidden` and therefore removed
-  from tab order.
+  from tab order. Previous/next buttons disable at the ends of the deck.
+- Form controls keep their native keys: arrows adjust sliders, Space activates the focused
+  button instead of advancing the deck.
+- Overlays move focus to their close button on open, restore it on close, trap Tab inside
+  themselves, and set `inert` on the deck while open.
+- Live region announces every slide change for screen readers; heatmap cells, solution rows
+  and references expose `aria-pressed` / `aria-expanded` state.
 - `prefers-reduced-motion` disables animation and the Ken Burns drift.
-- Live region announces every slide change for screen readers.
 - Charts are inline SVG, redrawn on resize via a single `ResizeObserver` per host.
 - The crowd simulation pauses via `requestAnimationFrame` cancellation when its slide is
   inactive or the tab is hidden.
@@ -154,4 +166,9 @@ assets/             three photographs — hero aerial, monitoring dawn, finale s
   dragging a lever stays smooth while both slides stay in sync.
 - Overlays are hidden with the `hidden` attribute backed by `[hidden]{display:none!important}`,
   which is what makes them closable — an author `display` rule otherwise outranks the UA rule.
-- Total payload is under 1 MB, dominated by the three JPEG stills.
+- Safe-area insets (`env(safe-area-inset-*)`) keep the chrome clear of notches; touch devices
+  get 42–44px hit targets via a `pointer:coarse` media query.
+- Fonts are self-hosted woff2 with `font-display: swap` and preloaded — no external CDN, no
+  network calls at runtime, no layout shift from font loading.
+- Total payload is about 1.3 MB: three JPEG stills (~750 KB), six woff2 files (~350 KB),
+  and roughly 200 KB of CSS, JS and markup — all static, cache-friendly paths.

@@ -62,6 +62,10 @@
     const prev = current;
     current = i;
 
+    /* nav buttons reflect the bounds */
+    $('#btnPrev').disabled = i === 0;
+    $('#btnNext').disabled = i === slides.length - 1;
+
     slides.forEach((s, k) => {
       s.node.classList.toggle('is-active', k === i);
       s.node.classList.toggle('is-prev', k === i - 1 && prev !== -1);
@@ -109,15 +113,22 @@
 
   /* ── keyboard ───────────────────────────────────────────────────── */
   document.addEventListener('keydown', e => {
-    const tag = (e.target.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea') return;
+    const t = e.target instanceof Element ? e.target : null;
+    const tag = t ? (t.tagName || '').toLowerCase() : '';
+    /* form controls keep their native keys (sliders, steppers, inputs) */
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || (t && t.isContentEditable)) return;
     if (!$('#help').hidden || !$('#overview').hidden) {
       if (e.key === 'Escape') closeOverlays();
       return;
     }
     switch (e.key) {
-      case 'ArrowRight': case 'PageDown': case ' ': e.preventDefault(); next(); break;
-      case 'ArrowLeft':  case 'PageUp':            e.preventDefault(); prev(); break;
+      case 'ArrowRight': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft':  case 'PageUp':   e.preventDefault(); prev(); break;
+      case ' ':
+        /* a focused button/link/toggle activates itself on Space — don't steal it */
+        if (t && t.closest('button, a, [role="button"]')) return;
+        e.preventDefault(); next();
+        break;
       case 'Home': e.preventDefault(); go(0); break;
       case 'End':  e.preventDefault(); go(slides.length - 1); break;
       case 'o': case 'O': openOverview(); break;
@@ -157,25 +168,51 @@
     if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6) { dx < 0 ? next() : prev(); }
   }, { passive: true });
 
-  /* wheel navigation with throttle */
-  let wheelLock = 0;
-  deckEl.addEventListener('wheel', e => {
-    if (e.target.closest('.scontent, .sensorlist, .overlay__panel')) return;
-    const now = Date.now();
-    if (now - wheelLock < 900) return;
-    if (Math.abs(e.deltaY) < 26) return;
-    wheelLock = now;
-    e.deltaY > 0 ? next() : prev();
-  }, { passive: true });
+  /* NOTE: no wheel navigation. Scrolling must never change the slide —
+     a stray trackpad gesture used to flip pages, which reads as a bug.
+     Wheel/touchpad input scrolls whatever scrollable region is under the
+     cursor (the content column, the simulator, the matrix); everywhere
+     else it intentionally does nothing. Slide changes happen via the
+     arrow keys, buttons, dots, overview, number keys, or a touch swipe. */
 
   /* ── overlays ───────────────────────────────────────────────────── */
-  function openOverview() { closeOverlays(); $('#overview').hidden = false; }
-  function openHelp() { closeOverlays(); $('#help').hidden = false; }
-  function closeOverlays() { $('#overview').hidden = true; $('#help').hidden = true; }
+  let lastFocus = null;
+  function openOverlay(sel) {
+    closeOverlays();
+    lastFocus = document.activeElement instanceof Element ? document.activeElement : null;
+    const o = $(sel);
+    o.hidden = false;
+    deckEl.inert = true;   /* keep the deck out of tab order & AT while a modal is open */
+    const c = o.querySelector('[data-close-overlay]');
+    if (c) c.focus();
+  }
+  const openOverview = () => openOverlay('#overview');
+  const openHelp = () => openOverlay('#help');
+  function closeOverlays() {
+    const wasOpen = !$('#overview').hidden || !$('#help').hidden;
+    $('#overview').hidden = true;
+    $('#help').hidden = true;
+    deckEl.inert = false;
+    if (wasOpen && lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+    lastFocus = null;
+  }
   $$('[data-close-overlay]').forEach(b => b.addEventListener('click', closeOverlays));
   $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeOverlays(); }));
   $('#btnOverview').addEventListener('click', openOverview);
   $('#btnHelp').addEventListener('click', openHelp);
+
+  /* keep Tab cycling inside an open overlay */
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const open = !$('#overview').hidden ? $('#overview') : !$('#help').hidden ? $('#help') : null;
+    if (!open) return;
+    const f = [...open.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter(el => !el.disabled && el.getClientRects().length);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   /* ── guided walkthrough ─────────────────────────────────────────── */
   function showGuide(i) {
@@ -250,10 +287,19 @@
   }
 
   /* ── fullscreen ─────────────────────────────────────────────────── */
+  const btnFull = $('#btnFull');
+  btnFull.addEventListener('click', toggleFullscreen);
   function toggleFullscreen() {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
-    else document.exitFullscreen?.();
+    if (!document.fullscreenElement) {
+      const p = document.documentElement.requestFullscreen?.();
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } else {
+      document.exitFullscreen?.();
+    }
   }
+  document.addEventListener('fullscreenchange', () => {
+    btnFull.setAttribute('aria-pressed', String(!!document.fullscreenElement));
+  });
 
   /* ── pause background work when tab is hidden ───────────────────── */
   document.addEventListener('visibilitychange', () => {
