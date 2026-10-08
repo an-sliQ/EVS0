@@ -198,10 +198,10 @@ const Simulator = (() => {
       </div>
       ${tag ? `<div class="shead__tag">${tag}</div>` : ''}
     </header>`;
-  const bullets = (items, tone = '') => `
-    <ul class="bullets ${tone ? 'bullets--' + tone : ''}">${
-      items.map((t, i) => `<li style="--i:${i}">${t}</li>`).join('')
-    }</ul>`;
+  const brief = (items, tone = '') => `
+    <ol class="brief ${tone ? 'brief--' + tone : ''}">${
+      items.map((t, i) => `<li data-n="${String(i + 1).padStart(2, '0')}" style="--i:${i}"><span>${t}</span></li>`).join('')
+    }</ol>`;
   const cite = t => `<p class="datacite"><b>Sources &middot;</b> ${t}</p>`;
 
   /* cross-slide jump buttons (handled by app.js) */
@@ -222,9 +222,9 @@ const Simulator = (() => {
       <div class="sbody">
         <div class="svisual">
           <div class="sim" id="simWrap">
-            <div class="panel__t" style="margin:0;flex-wrap:wrap;row-gap:6px">
+            <div class="panel__t panel__t--flush panel__t--wrap">
               <span>Pressure envelope — each axis as a multiple of its limit (log&#8322; scale)</span>
-              <span style="display:flex;gap:9px;align-items:center">
+              <span class="panelside">
                 <span class="livechip" id="simChip">Live model</span>
                 <button class="linkbtn" type="button" id="simReset">Reset to 2025 baseline</button>
               </span>
@@ -245,7 +245,7 @@ const Simulator = (() => {
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>Crowd limit:</b> ghat throughput per hour',
             '<b>Ecological limit:</b> untreated load versus flow',
             '<b>Binding constraint moves</b> as levers change',
@@ -254,8 +254,8 @@ const Simulator = (() => {
             '<b>80 MLD untreated</b> reopens coliform breach'
           ], 'cyan')}
           <div class="panel">
-            <p class="panel__t"><span>Model note</span><span class="livechip">Calibrated</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="panel__t"><span>Model note</span><span class="panelhint">Calibrated to the 2025 peak</span></p>
+            <p class="panel__body">
               The engine is built on flow and dilution rather than on a single capacity number. Its default state
               reproduces the documented peak day &mdash; about 480 MLD of sewage generated against 400 MLD treated,
               650 MT/day of waste reaching the Baswar plant, and a near-field coliform load above the
@@ -263,7 +263,7 @@ const Simulator = (() => {
               Coefficients are illustrative; the relationships are the ones the monitoring data showed.
             </p>
           </div>
-          <p class="datacite" style="border:0;padding:0">
+          <p class="datacite datacite--flush">
             <b>Active packages &middot;</b> <span id="simPkgNote">none</span>
           </p>
           <button class="linkbtn" data-goto="11">Open the decision matrix &rarr;</button>
@@ -452,18 +452,20 @@ const Simulator = (() => {
               <div class="mx__summary" id="mxSummary"></div>
               <button class="linkbtn" data-goto="10">&larr; Capacity simulator</button>
             </div>
-            <table class="mx__table">
-              <thead>
-                <tr>
-                  <th class="mx__rank">#</th>
-                  <th class="mx__pkg">Package</th>
-                  ${headCols}
-                  <th>Score</th>
-                  <th>Apply</th>
-                </tr>
-              </thead>
-              <tbody id="mxBody"></tbody>
-            </table>
+            <div class="mx__scroll">
+              <table class="mx__table">
+                <thead>
+                  <tr>
+                    <th class="mx__rank">#</th>
+                    <th class="mx__pkg">Package</th>
+                    ${headCols}
+                    <th>Score</th>
+                    <th>Apply</th>
+                  </tr>
+                </thead>
+                <tbody id="mxBody"></tbody>
+              </table>
+            </div>
             <div class="mx__detail" id="mxDetail"></div>
             <p class="mx__hint">Weights (0–4) are your policy priorities and re-rank the table. Scores are modelled judgements of each
             package on a 0–10 scale, not measurements. Applying a package wires its effect into the shared model &mdash;
@@ -471,7 +473,7 @@ const Simulator = (() => {
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             'Six packages, <b>five weighted criteria</b>',
             'Change a weight, the <b>ranking reorders</b>',
             'Apply packages to the <b>capacity simulator</b>',
@@ -481,7 +483,7 @@ const Simulator = (() => {
           ], 'violet')}
           <div class="panel">
             <p class="panel__t"><span>Reading the matrix</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="panel__body">
               A weighted matrix will not choose for you. What it does is make the argument explicit: raise the weight on
               river health and the cheap crowd-control package loses its lead to treatment capacity, which is slower and
               dearer but the only lever that subtracts directly from the untreated load.

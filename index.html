@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="command">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Digital Assessment of Carrying Capacity — Maha Kumbh 2025, Prayagraj</title>
-<meta name="description" content="An interactive 12-slide case study on the digital assessment of carrying capacity at Maha Kumbh 2025, Prayagraj — hydrological stress, waste load, crowd analytics and policy recommendations." />
+<meta name="description" content="An interactive twelve-slide case study on the digital assessment of carrying capacity at Maha Kumbh 2025, Prayagraj — hydrological stress, waste load, crowd analytics and policy recommendations." />
+<meta name="theme-color" content="#05070D" />
 <meta name="color-scheme" content="dark" />
-<link rel="preload" as="image" href="assets/hero-sangam-aerial.jpg" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Digital Assessment of Carrying Capacity — Maha Kumbh 2025, Prayagraj" />
+<meta property="og:description" content="An interactive twelve-slide case study on measuring the physical, ecological and social limits of the world's largest human gathering — with a live capacity simulator and decision matrix." />
+<meta property="og:image" content="https://an-sliq.github.io/EVS0/assets/hero-sangam-aerial.jpg" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="preload" as="image" href="assets/hero-sangam-aerial.jpg" fetchpriority="high" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/fraunces-var.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/instrument-sans-var.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="assets/fonts/ibm-plex-mono-400.woff2" />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='42' fill='%23FF8A1F'/><circle cx='50' cy='50' r='20' fill='%23060A18'/></svg>" />
 <link rel="stylesheet" href="css/deck.css" />
 </head>
@@ -14,12 +23,12 @@
 
 <!-- ══ Boot screen ══════════════════════════════════════════════════════ -->
 <div id="boot" class="boot" aria-hidden="true">
-  <div class="boot__mark"><span></span><span></span><span></span></div>
-  <p class="boot__label">Loading field data&hellip;</p>
+  <div class="boot__mark"><i></i><span>Carrying Capacity &middot; Maha Kumbh 2025</span></div>
+  <div class="boot__bar"><i></i></div>
 </div>
 
 <!-- ══ Deck ═════════════════════════════════════════════════════════════ -->
-<main id="deck" class="deck" role="region" aria-label="Maha Kumbh 2025 case study presentation" aria-live="polite">
+<main id="deck" class="deck" role="region" aria-label="Maha Kumbh 2025 case study presentation">
   <!-- slides injected by js/slides.js -->
 </main>
 
@@ -28,12 +37,15 @@
 
 <header class="topbar">
   <div class="topbar__brand">
-    <span class="branddot"></span>
+    <span class="branddot" aria-hidden="true"></span>
     <span class="topbar__title">Carrying Capacity &middot; Maha Kumbh 2025</span>
   </div>
   <div class="topbar__tools">
-    <button class="iconbtn" id="btnSound" title="Toggle ambient sound (S)" aria-label="Toggle ambient sound">
+    <button class="iconbtn" id="btnSound" title="Toggle ambient sound (S)" aria-label="Toggle ambient sound" aria-pressed="false">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h3l4 4V5L7 9H4z"/><path class="wave" d="M15.5 8.5a5 5 0 010 7"/><path class="wave" d="M18 6a8.5 8.5 0 010 12"/></svg>
+    </button>
+    <button class="iconbtn" id="btnFull" title="Fullscreen (F)" aria-label="Toggle fullscreen" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
     </button>
     <button class="iconbtn" id="btnOverview" title="Slide overview (O)" aria-label="Slide overview">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
@@ -55,7 +67,7 @@
   </div>
   <ol class="dots" id="dots" aria-label="Jump to slide"></ol>
   <div class="bottombar__right">
-    <span class="counter"><b id="curNum">01</b><i>/</i><span id="totNum">10</span></span>
+    <span class="counter"><b id="curNum">01</b><i>/</i><span id="totNum">12</span></span>
     <span class="slide-label" id="slideLabel">&nbsp;</span>
   </div>
 </nav>
@@ -93,7 +105,7 @@
       <div><dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>First / last slide</dd></div>
       <div><dt><kbd>Esc</kbd></dt><dd>Close overlays</dd></div>
     </dl>
-    <p class="help-note">Slides 10 and 11 share one model: set the levers in the capacity simulator, then apply packages in the decision matrix and watch the binding limit move. On touch devices, swipe left or right to change slides. Charts, sensors and crowd maps on each slide are interactive &mdash; hover, tap or drag them.</p>
+    <p class="help-note">Slides 10 and 11 share one model: set the levers in the capacity simulator, then apply packages in the decision matrix and watch the binding limit move. On touch devices, swipe left or right to change slides. Charts, sensors and crowd maps on each slide are interactive &mdash; hover, tap or drag them. Scrolling never changes slides; use the arrows, the dots, or a swipe.</p>
   </div>
 </div>
 

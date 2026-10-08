@@ -1,17 +1,16 @@
 /* ══════════════════════════════════════════════════════════════════════
-   slides.js — Builds the ten slides of the deck.
-   Layout rule: maximum six bullets, maximum six words per bullet.
+   slides.js — Builds the twelve slides of the deck.
+   Layout rule: maximum six brief points per slide, kept short.
    Visual rule: the graphic panel owns the larger half of every slide.
    ══════════════════════════════════════════════════════════════════════ */
 
 const Slides = (() => {
 
   /* ── helpers ────────────────────────────────────────────────────── */
-  const h = (s) => s; // tagged-template passthrough for readability
-  const bullets = (items, tone = '') =>
-    `<ul class="bullets ${tone ? 'bullets--' + tone : ''}">${
-      items.map((t, i) => `<li style="--i:${i}">${t}</li>`).join('')
-    }</ul>`;
+  const brief = (items, tone = '') =>
+    `<ol class="brief ${tone ? 'brief--' + tone : ''}">${
+      items.map((t, i) => `<li data-n="${String(i + 1).padStart(2, '0')}" style="--i:${i}"><span>${t}</span></li>`).join('')
+    }</ol>`;
 
   const stat = (rows) =>
     `<div class="stats">${rows.map(([v, l, u]) =>
@@ -39,7 +38,7 @@ const Slides = (() => {
     plate:'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M4 12h2M18 12h2"/>',
     solar:'<path d="M4 15h16l-2-6H6z"/><path d="M12 9V4M8 5.5 9.5 7M16 5.5 14.5 7"/><path d="M9 19h6"/>'
   };
-  const icon = (k, color) => `<span class="solcard__ic" style="color:${color}"><svg viewBox="0 0 24 24" stroke="${color}" aria-hidden="true">${icons[k]}</svg></span>`;
+  const icon = (k, color) => `<span class="solrow__ic" style="--c:${color}"><svg viewBox="0 0 24 24" aria-hidden="true">${icons[k]}</svg></span>`;
 
   /* ══════════════════════════════════════════════════════════════════
      SLIDE 1 · Title & Introduction
@@ -70,9 +69,9 @@ const Slides = (() => {
           <div class="tstat"><div class="tstat__v">7</div><div class="tstat__l">Monitoring locations</div></div>
         </div>
       </div>
-      <div class="sbody sbody--full" style="flex:0 0 auto;margin-top:clamp(10px,1.6vh,18px)">
-        <div class="scontent" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
-          ${bullets([
+      <div class="titlebelow">
+        <div class="titlegrid">
+          ${brief([
             '<b>World&rsquo;s largest</b> human gathering event',
             '<b>400M+ visitors</b> across 45 days',
             'Confluence of <span class="fx">Ganga, Yamuna, Saraswati</span>',
@@ -81,10 +80,10 @@ const Slides = (() => {
           ])}
           <div class="panel">
             <p class="panel__t"><span>How to read this deck</span></p>
-            <p style="font-size:12.4px;color:var(--text-2);line-height:1.6">
-              Each slide pairs a live visual with a six-line brief. Figures marked
-              <span class="flag flag--live" style="display:inline-block">live</span> come from monitoring runs during the event;
-              those marked <span class="flag flag--risk" style="display:inline-block">risk</span> are readings that breached a criterion.
+            <p class="panel__body">
+              Each slide pairs a live visual with a short brief. Figures marked
+              <span class="flag flag--live">live</span> come from monitoring runs during the event;
+              those marked <span class="flag flag--risk">risk</span> are readings that breached a criterion.
               Hover, tap or drag the graphics &mdash; every chart responds.
             </p>
           </div>
@@ -110,7 +109,7 @@ const Slides = (() => {
         </div>
         <div class="scontent">
           <div class="panel vennread" id="vennRead">
-            <p class="panel__t"><span>Set detail</span><span class="livechip">Interactive</span></p>
+            <p class="panel__t"><span>Set detail</span><span class="panelhint">Hover or tap</span></p>
             <h4>Select a capacity set</h4>
             <p>Carrying capacity is not a single threshold. Three independent limits bind at once, and the binding constraint changes hour by hour.</p>
             <ul>
@@ -119,7 +118,7 @@ const Slides = (() => {
               <li>Social &mdash; density beyond which crowds turn dangerous</li>
             </ul>
           </div>
-          ${bullets([
+          ${brief([
             '<b>Physical TCC:</b> total space per pilgrim',
             '<b>Ecological TCC:</b> river&rsquo;s purification threshold limits',
             '<b>Social TCC:</b> maximum density before panic',
@@ -141,8 +140,8 @@ const Slides = (() => {
       host.addEventListener('set', e => {
         const d = copy[e.detail.id];
         read.innerHTML = d
-          ? `<p class="panel__t"><span>Set detail</span><span class="livechip">Inspecting</span></p><h4>${d.t}</h4><p>${d.p}</p><ul>${d.li.map(x=>`<li>${x}</li>`).join('')}</ul>`
-          : `<p class="panel__t"><span>Set detail</span><span class="livechip">Interactive</span></p><h4>Select a capacity set</h4><p>Carrying capacity is not a single threshold. Three independent limits bind at once, and the binding constraint changes hour by hour.</p><ul><li>Physical &mdash; square metres available per pilgrim</li><li>Ecological &mdash; organic load the rivers can absorb</li><li>Social &mdash; density beyond which crowds turn dangerous</li></ul>`;
+          ? `<p class="panel__t"><span>Set detail</span><span class="panelhint">Inspecting</span></p><h4>${d.t}</h4><p>${d.p}</p><ul>${d.li.map(x=>`<li>${x}</li>`).join('')}</ul>`
+          : `<p class="panel__t"><span>Set detail</span><span class="panelhint">Hover or tap</span></p><h4>Select a capacity set</h4><p>Carrying capacity is not a single threshold. Three independent limits bind at once, and the binding constraint changes hour by hour.</p><ul><li>Physical &mdash; square metres available per pilgrim</li><li>Ecological &mdash; organic load the rivers can absorb</li><li>Social &mdash; density beyond which crowds turn dangerous</li></ul>`;
       });
     };
     return { node, init };
@@ -158,24 +157,24 @@ const Slides = (() => {
       ${head({ num:'03', kicker:'Environmental challenge I', title:'Hydrological Stress at the <em>Sangam</em>', tag:'Live readings Jan–Feb 2025' })}
       <div class="sbody">
         <div class="svisual">
-          <div class="panel" style="flex:1;display:flex;flex-direction:column;min-height:0;border:0;background:transparent">
-            <div class="panel__t">
+          <div class="chartpanel">
+            <div class="panel__t panel__t--flush">
               <span>River chemistry &mdash; click any point</span>
-              <span class="livechip">Monitoring run</span>
+              <span class="panelhint">Monitoring run</span>
             </div>
             <div class="chartwrap" id="waterChart"></div>
-            <div class="legend" style="margin-top:10px">
+            <div class="legend">
               <span><i style="background:#FF4D62"></i>BOD mg/L</span>
               <span><i style="background:#2FD6C3"></i>Dissolved oxygen mg/L</span>
               <span><i style="background:#FFC24B"></i>Faecal coliform (log scale)</span>
             </div>
           </div>
-          <div class="svisual__cap" style="padding-top:4px">
+          <div class="svisual__cap">
             <p id="waterRead">Point readings at the Sangam nose crossed the oxygen-demand limit repeatedly, while dissolved oxygen fell on the heaviest bathing days.</p>
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>BOD spike:</b> <span class="fx">5.29 mg/L</span>, safe &lt;3',
             '<b>DO drop:</b> <span class="fx">2.2 mg/L</span> locally',
             '<b>Fecal coliform:</b> <span class="fx">4x above</span> bathing limits',
@@ -234,20 +233,20 @@ const Slides = (() => {
       ${head({ num:'04', kicker:'Environmental challenge II', title:'Waste Load and <em>Land Degradation</em>', tag:'Sector heatmap' })}
       <div class="sbody">
         <div class="svisual">
-          <div class="heat" style="padding:clamp(12px,1.4vw,20px)">
-            <div class="panel__t"><span>Solid-waste accumulation by sector</span><span class="livechip">25 sectors</span></div>
+          <div class="heat">
+            <div class="panel__t panel__t--flush"><span>Solid-waste accumulation by sector</span><span class="panelhint">25 sectors</span></div>
             <div class="heat__grid" id="heatGrid"></div>
             <div class="heat__scale">
               <span>Low</span><div class="heat__ramp"></div><span>Critical</span>
             </div>
-            <p id="heatRead" style="font-size:12.2px;color:var(--text-2);line-height:1.55;min-height:2.6em">
+            <p class="heatread" id="heatRead">
               Load concentrates along the ghats and around the confluence, where pilgrim footfall and food stalls overlap. Select a cell for sector context.
             </p>
           </div>
         </div>
         <div class="scontent">
           ${stat([['650','Garbage MT / day','MT'],['400','Plastic to fuel','MT'],['1.5','Toilets deployed','L'],['10','Sanitation teams','k']])}
-          ${bullets([
+          ${brief([
             '<b>650 MT garbage</b> processed daily capacity',
             '<b>400 MT plastic</b> converted to fuel',
             '<b>1.5 Lakh toilets</b> deployed across sectors',
@@ -293,25 +292,25 @@ const Slides = (() => {
       <div class="sbody">
         <div class="svisual svisual--photo">
           <div class="svisual__media">
-            <img src="assets/river-monitoring-dawn.jpg" alt="A solar-powered sensor buoy on a calm river at dawn while a tethering drone hovers above the water" />
+            <img src="assets/river-monitoring-dawn.jpg" alt="A solar-powered sensor buoy on a calm river at dawn while a tethering drone hovers above the water" loading="lazy" decoding="async" />
           </div>
           <div class="svisual__scrim"></div>
-          <div style="position:relative;z-index:3;flex:1;display:flex;flex-direction:column;min-height:0;padding:clamp(12px,1.4vw,20px)">
+          <div class="svisual__in">
             <div class="sensors" id="sensorPanel">
-              <div class="panel" style="display:flex;flex-direction:column;gap:9px;min-height:0;background:rgba(4,7,15,.72)">
+              <div class="panel panel--glass">
                 <div class="panel__t"><span>Telemetry feed</span><span class="livechip">Streaming</span></div>
                 <div class="sensorlist" id="sensorList"></div>
               </div>
-              <div class="panel" style="display:flex;flex-direction:column;gap:8px;background:rgba(4,7,15,.72)">
+              <div class="panel panel--glass">
                 <div class="panel__t"><span>Trend buffer</span></div>
-                <div class="chartwrap" id="sparkChart" style="min-height:120px"></div>
-                <p class="datacite" style="border:0;padding:0" id="sensorNote">Select a parameter to plot its recent buffer.</p>
+                <div class="chartwrap spark" id="sparkChart"></div>
+                <p class="datacite datacite--flush" id="sensorNote">Select a parameter to plot its recent buffer.</p>
               </div>
             </div>
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>Automated IoT Sensors</b> track river health',
             '<b>Real-time BOD/DO alerts</b> for authorities',
             '<b>GIS Mapping</b> for land-use changes',
@@ -320,7 +319,7 @@ const Slides = (() => {
           ], 'teal')}
           <div class="panel">
             <p class="panel__t"><span>Why continuous beats spot checks</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="panel__body">
               Twenty monitoring rounds produced a reassuring median and a set of alarming peaks in the same stretch of river.
               Continuous telemetry removes that ambiguity: it shows when a threshold is crossed and how fast the river recovers,
               which is what a diversion or intake decision actually depends on.
@@ -361,7 +360,7 @@ const Slides = (() => {
           return `<button class="sensor sensor--${cls}" data-k="${m.key}" aria-pressed="${m.key === selected}">
             <span class="sensor__n">${m.name}</span>
             <span class="sensor__st">${st}</span>
-            <span class="sensor__v" style="grid-column:1">${Charts.fmt(v, v > 100 ? 0 : 2)}<small>${m.unit}</small></span>
+            <span class="sensor__v">${Charts.fmt(v, v > 100 ? 0 : 2)}<small>${m.unit}</small></span>
             <span class="sensor__bar"><i style="width:${pct}%"></i></span>
           </button>`;
         }).join('');
@@ -420,8 +419,8 @@ const Slides = (() => {
       ${head({ num:'06', kicker:'Digital instrument II', title:'Crowd Analytics and <em>Physical Mitigation</em>', tag:'AI vision simulation' })}
       <div class="sbody">
         <div class="svisual">
-          <div class="crowd" style="padding:clamp(12px,1.4vw,20px)">
-            <div class="panel__t" style="margin:0">
+          <div class="crowd">
+            <div class="panel__t panel__t--flush">
               <span>AI camera field &mdash; density classification</span>
               <span class="livechip" id="crowdState">Nominal</span>
             </div>
@@ -441,7 +440,7 @@ const Slides = (() => {
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>1,800+ AI Cameras</b> monitoring density',
             '<b>Real-time Alerts</b> when capacity breaches',
             'Predictive algorithms for <span class="fx">Stampede Prevention</span>',
@@ -450,7 +449,7 @@ const Slides = (() => {
           ], 'cyan')}
           <div class="panel">
             <p class="panel__t"><span>Threshold protocol</span><span class="livechip" id="protoChip">Standby</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58" id="protoText">
+            <p class="panel__body" id="protoText">
               Move the inflow slider. When a zone crosses its marked density threshold, an alert is pushed to the wireless grid and
               ground teams execute one of thirteen standing contingency schemes.
             </p>
@@ -577,7 +576,10 @@ const Slides = (() => {
         const peak = bs.reduce((a,b)=>Math.max(a,b.load),0);
         const overall = peak > .82 ? 'critical' : peak > .58 ? 'elevated' : 'nominal';
         const stateTxt = overall === 'critical' ? 'Threshold breach' : overall === 'elevated' ? 'Watch zone' : 'Nominal';
-        if (state.textContent !== stateTxt) state.textContent = stateTxt;
+        if (state.textContent !== stateTxt) {
+          state.textContent = stateTxt;
+          state.className = 'livechip' + (overall === 'critical' ? ' livechip--crimson' : overall === 'elevated' ? ' livechip--amber' : '');
+        }
 
         const peakPct = Math.round(peak * 100);
         if (peakPct !== lastPeak) { metric.innerHTML = `Density <b>${peakPct}%</b>`; lastPeak = peakPct; }
@@ -588,7 +590,10 @@ const Slides = (() => {
           : 'Density inside the safe band. Cameras classify the crowd continuously and no intervention is required.';
         if (protoText.textContent.trim() !== want) protoText.textContent = want;
         const chipTxt = overall === 'critical' ? 'Scheme active' : overall === 'elevated' ? 'Watch' : 'Standby';
-        if (protoChip.textContent !== chipTxt) protoChip.textContent = chipTxt;
+        if (protoChip.textContent !== chipTxt) {
+          protoChip.textContent = chipTxt;
+          protoChip.className = 'livechip' + (overall === 'critical' ? ' livechip--crimson' : overall === 'elevated' ? ' livechip--amber' : '');
+        }
 
         if (t - lastLog > 74) {
           lastLog = t;
@@ -629,11 +634,11 @@ const Slides = (() => {
       ${head({ num:'07', kicker:'Comparative data visual', title:'City Baseline vs. <em>Mela Peak</em>', tag:'Stress meter' })}
       <div class="sbody sbody--flip">
         <div class="svisual">
-          <div style="flex:1;display:flex;flex-direction:column;min-height:0;padding:clamp(12px,1.4vw,20px);gap:10px">
-            <div class="panel__t" style="margin:0"><span>Load comparison &mdash; hover a row</span><span class="livechip">Ratio scaled</span></div>
+          <div class="stresswrap">
+            <div class="panel__t panel__t--flush"><span>Load comparison &mdash; select a row</span><span class="panelhint">Log-scaled ratios</span></div>
             <div class="stress" id="stressRows"></div>
-            <div style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;border-top:1px solid var(--line);padding-top:10px">
-              <div id="stressRead" style="font-size:12.2px;color:var(--text-2);line-height:1.55">
+            <div class="stressfoot">
+              <div class="stressread" id="stressRead">
                 Ratios are computed against Prayagraj&rsquo;s ordinary operating baseline. Bar length is scaled within each row so the baseline and peak remain comparable.
               </div>
               <div class="gauge" id="stressGauge"></div>
@@ -641,7 +646,7 @@ const Slides = (() => {
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>Water demand:</b> 350 vs <span class="fx">450 MLD</span>',
             '<b>Population:</b> 5M vs <span class="fx">400M Peak</span>',
             '<b>Waste Spike:</b> <span class="fx">10x daily baseline</span> increase',
@@ -736,13 +741,15 @@ const Slides = (() => {
         m:'Solar lighting and an online e-rickshaw booking system cut diesel generator use and reduced vehicle emissions across the Mela ground.' }
     ];
     node.innerHTML = `
-      ${head({ num:'08', kicker:'Engineering response', title:'Smart Solutions and <em>Green Engineering</em>', tag:'Tap a card' })}
+      ${head({ num:'08', kicker:'Engineering response', title:'Smart Solutions and <em>Green Engineering</em>', tag:'Tap a row' })}
       <div class="sbody">
         <div class="svisual">
-          <div class="solgrid" id="solGrid"></div>
+          <div class="solindex" id="solGrid">
+            <div class="panel__t panel__t--flush"><span>Six interventions</span><span class="panelhint">Tap to expand</span></div>
+          </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             '<b>IIT-model Bio-toilets</b> for zero discharge',
             '<b>Zero-Plastic Zones</b> enforced by AI',
             '<b>Miyawaki Afforestation</b> for air purification',
@@ -751,7 +758,7 @@ const Slides = (() => {
           ], 'lime')}
           <div class="panel">
             <p class="panel__t"><span>Design principle</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="panel__body">
               Every intervention here attacks the load at source rather than treating it downstream: refuse the disposable,
               digest the waste on site, replant what was cleared, and recover energy from what remains.
             </p>
@@ -761,17 +768,24 @@ const Slides = (() => {
       </div>`;
     const init = () => {
       const grid = node.querySelector('#solGrid');
-      grid.innerHTML = cards.map((c, i) => `
-        <button class="solcard" aria-expanded="false" data-i="${i}">
+      cards.forEach((c, i) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'solrow';
+        b.setAttribute('aria-expanded', 'false');
+        b.dataset.i = i;
+        b.innerHTML = `
+          <span class="solrow__n">${String(i + 1).padStart(2, '0')}</span>
           ${icon(c.k, c.c)}
-          <h4>${c.t}</h4>
-          <p>${c.s}</p>
-          <span class="solcard__more">${c.m}</span>
-        </button>`).join('');
+          <span class="solrow__tx"><b>${c.t}</b><i>${c.s}</i></span>
+          <span class="solrow__x" aria-hidden="true">+</span>
+          <span class="solrow__more">${c.m}</span>`;
+        grid.appendChild(b);
+      });
       grid.addEventListener('click', e => {
-        const b = e.target.closest('.solcard'); if (!b) return;
+        const b = e.target.closest('.solrow'); if (!b) return;
         const open = b.getAttribute('aria-expanded') === 'true';
-        grid.querySelectorAll('.solcard').forEach(x => x.setAttribute('aria-expanded','false'));
+        grid.querySelectorAll('.solrow').forEach(x => x.setAttribute('aria-expanded','false'));
         b.setAttribute('aria-expanded', open ? 'false' : 'true');
       });
     };
@@ -808,7 +822,7 @@ const Slides = (() => {
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             'Deploy <b>Permanent Digital Twin</b> simulations',
             'Set <b>Dynamic Thresholds</b> for crowd inflow',
             'Mandate <b>Real-time Water Quality</b> dashboards',
@@ -817,7 +831,7 @@ const Slides = (() => {
           ], 'violet')}
           <div class="panel">
             <p class="panel__t"><span>From event to institution</span></p>
-            <p style="font-size:12.2px;color:var(--text-2);line-height:1.58">
+            <p class="panel__body">
               The 2025 apparatus was assembled for forty-five days. The recommendations above are what it looks like
               when the same capability is maintained continuously &mdash; so the next gathering starts with a calibrated model
               instead of a blank page.
@@ -869,25 +883,25 @@ const Slides = (() => {
       <div class="sbody">
         <div class="svisual svisual--photo">
           <div class="svisual__media">
-            <img src="assets/finale-sangam-sunset.jpg" alt="Sunset over a calm river confluence with boats and temple spires silhouetted on the far bank" />
+            <img src="assets/finale-sangam-sunset.jpg" alt="Sunset over a calm river confluence with boats and temple spires silhouetted on the far bank" loading="lazy" decoding="async" />
           </div>
           <div class="svisual__scrim"></div>
-          <div style="position:relative;z-index:3;flex:1;display:flex;flex-direction:column;justify-content:flex-end;min-height:0;gap:14px;padding:clamp(16px,1.9vw,28px)">
+          <div class="svisual__in svisual__in--end">
             <div class="flagrow">
               <span class="flag flag--live">Future ready</span>
               <span class="flag flag--note">Data-first governance</span>
             </div>
-            <h3 style="font-family:var(--fd);font-size:clamp(19px,2.5vw,34px);color:#fff;line-height:1.14;max-width:24ch">
-              The rivers were not restored. The <em style="color:var(--amber);font-style:italic">failure points became measurable</em>.
+            <h3 class="concl__q">
+              The rivers were not restored. The <em>failure points became measurable</em>.
             </h3>
-            <p style="font-size:clamp(12px,1.14vw,14.5px);color:var(--text-2);max-width:56ch;line-height:1.6">
+            <p class="concl__p">
               Every instrument on the previous nine slides existed to answer one question in time to act on it:
               how close is this system to its limit, and which limit is binding right now?
             </p>
           </div>
         </div>
         <div class="scontent">
-          ${bullets([
+          ${brief([
             'Technology builds <b>Predictive Ecological Resilience</b>',
             'Digital assessment prevents <b>Environmental Collapse</b>',
             'Mahakumbh: a <b>Smart City</b> blueprint',
@@ -898,13 +912,14 @@ const Slides = (() => {
             <div class="refs" id="refList">
               ${DECK.sources.map((s, i) => `
                 <button class="ref" aria-expanded="false" data-i="${i}">
-                  <div class="ref__src">${s.src}</div>
-                  <div class="ref__t">${s.title}</div>
-                  <div class="ref__d">${s.detail}</div>
+                  <span class="ref__src">${s.src}</span>
+                  <span class="ref__x" aria-hidden="true">+</span>
+                  <span class="ref__t">${s.title}</span>
+                  <span class="ref__d">${s.detail}</span>
                 </button>`).join('')}
             </div>
           </div>
-          <p class="datacite" style="border:0;padding:0">
+          <p class="datacite datacite--flush">
             <b>Note on method &middot;</b> Figures are reproduced from publicly reported monitoring data and official statements.
             Sector heatmap values and the live sensor feed are modelled illustrations built to the published ranges, not raw telemetry.
           </p>

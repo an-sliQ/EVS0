@@ -242,6 +242,7 @@ const Charts = (() => {
       const b = document.createElement('button');
       b.className = 'heat__cell';
       b.type = 'button';
+      b.setAttribute('aria-pressed', 'false');
       b.style.background = `radial-gradient(120% 120% at 30% 20%, ${pick(Math.min(.99, c.v + .18))}, ${pick(c.v)})`;
       b.innerHTML = `<span></span>`;
       b.querySelector('span').textContent = cfg.cellLabel ? cfg.cellLabel(c) : '';
@@ -250,8 +251,8 @@ const Charts = (() => {
       bindTip(b, () => (cfg.cellName ? cfg.cellName(c) : `Sector ${c.i + 1}`), () => load);
       b.addEventListener('click', () => {
         const on = b.classList.contains('is-on');
-        host.querySelectorAll('.heat__cell').forEach(x => x.classList.remove('is-on'));
-        if (!on) b.classList.add('is-on');
+        host.querySelectorAll('.heat__cell').forEach(x => { x.classList.remove('is-on'); x.setAttribute('aria-pressed', 'false'); });
+        if (!on) { b.classList.add('is-on'); b.setAttribute('aria-pressed', 'true'); }
         host.dispatchEvent(new CustomEvent('cell', { detail: { cell: c, on: !on } }));
       });
       host.appendChild(b);
